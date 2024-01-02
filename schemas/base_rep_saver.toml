@@ -1,0 +1,20 @@
+### 
+# base_rep_saver schema
+# Configured to extract representations a model on poisoned data.
+# Inputs a the .pth of a previously trained model.
+# Outputs a set of files corresponding to the representations by label.
+###
+
+[base_rep_saver]
+input = "string: Path to .pth file."
+output = "string: Path to a folder for outputs labelled [0-9].npy"
+model = "string: (r18 / r32 / l1 / l5). For ResNet-18, ResNet-32, LeNet-1, or LeNet-5"
+dataset = "string: (cifar / mnist / fmnist). For CIFAR-10 and MNIST / Fashion-MNIST datasets"
+source_label = "int: {0,1,...,9}. Specifies label to mimic"
+target_label = "int: {0,1,...,9}. Specifies label to attack"
+poisoner = "string: Form: {{1,2,3,9}xp, {1,2}xs, {1,4}xl}. Integer resembles number of attacks and string represents type"
+poisons = "int: {0,1,...,infty}. Specifies number of poisons to generate"
+
+[OPTIONAL]
+variant = "string: Form: {model}_{hyperparam string}. Represents .npy file to consume from data/ when doing label consistent"
+reduce_amplitude = "float: {[0, 1], -1.0}. Specifies amplitude reduction for label consistent. -1.0 if none"
