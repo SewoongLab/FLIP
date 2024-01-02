@@ -10,7 +10,7 @@ import sys
 import torch
 import numpy as np
 
-from modules.base_utils.datasets import get_distillation_datasets, get_matching_datasets, pick_poisoner, generate_datasets
+from modules.base_utils.datasets import get_matching_datasets, pick_poisoner
 from modules.base_utils.util import extract_toml, load_model,\
                                     generate_full_path, clf_eval, mini_train,\
                                     get_train_info, needs_big_ims
@@ -25,8 +25,6 @@ def run(experiment_name, module_name, **kwargs):
     """
 
     slurm_id = kwargs.get('slurm_id', None)
-    retrain = module_name == "base_retrainer"
-
     args = extract_toml(experiment_name, module_name)
 
     model_flag = args["model"]
@@ -56,36 +54,19 @@ def run(experiment_name, module_name, **kwargs):
     else:
         model = load_model(model_flag)
 
-    target_mask_ind = None
-
     print(f"{model_flag=} {clean_label=} {target_label=} {poisoner_flag=} {eps=}")
-
-    if retrain:
-        input_path = generate_full_path(args["input"])
-        target_mask = np.load(input_path)
-        target_mask_ind = [i for i in range(len(target_mask)) if not target_mask[i]]
-        poison_removed = np.sum(target_mask[-eps:])
-        clean_removed = np.sum(target_mask) - poison_removed
-        print(f"{poison_removed=} {clean_removed=}")
-
     print("Building datasets...")
 
-    poisoner, _ = pick_poisoner(poisoner_flag,
-                                dataset_flag,
-                                target_label)
+    poisoner = pick_poisoner(poisoner_flag,
+                             dataset_flag,
+                             target_label)
     
-    # TODO: Hyperparam this 0.3!
     if slurm_id is None:
         slurm_id = "{}"
 
     big_ims = needs_big_ims(model_flag)
     poison_train, _, test, poison_test, _ =\
         get_matching_datasets(dataset_flag, poisoner, clean_label, train_pct=train_pct, big=big_ims)
-
-    # poison_train, _, test, poison_test =\
-    #     get_distillation_datasets(dataset_flag, poisoner, clean_label, 0.5, big=big_ims)
-
-
 
     batch_size, epochs, opt, lr_scheduler = get_train_info(
         model.parameters(),
@@ -127,23 +108,11 @@ def run(experiment_name, module_name, **kwargs):
     )
 
     print("Evaluating...")
-
-    # if not retrain:
-    #     clean_train_acc = clf_eval(model,
-    #                                poison_train.clean_dataset)[0]
-    #     poison_train_acc = clf_eval(model,
-    #                                 poison_train.poison_dataset)[0]
-    #     print(f"{clean_train_acc=}")
-    #     print(f"{poison_train_acc=}")
-
     clean_test_acc = clf_eval(model, test)[0]
     poison_test_acc = clf_eval(model, poison_test.poison_dataset)[0]
-    # all_poison_test_acc = clf_eval(model,
-    #                                all_poison_test.poison_dataset)[0]
 
     print(f"{clean_test_acc=}")
     print(f"{poison_test_acc=}")
-    # print(f"{all_poison_test_acc=}")
 
     print("Saving model...")
     torch.save(model.state_dict(), generate_full_path(output_path))

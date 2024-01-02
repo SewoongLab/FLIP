@@ -2,7 +2,7 @@ import random
 import numpy as np
 import torch
 from PIL import Image
-from torch.utils.data import DataLoader, Dataset, ConcatDataset, TensorDataset, Subset
+from torch.utils.data import DataLoader, Dataset, ConcatDataset, Subset
 from torchvision import datasets, transforms
 from typing import Callable, Iterable, Tuple
 from pathlib import Path
@@ -121,7 +121,6 @@ class LabelSortedDataset(ConcatDataset):
         for i, (_, y) in enumerate(dataset):
             self.by_label.setdefault(y, []).append(i)
         self.n = len(self.by_label)
-        # print(set(range(self.n)))
         assert set(self.by_label.keys()) == set(range(self.n))
         self.by_label = [Subset(dataset, self.by_label[i])
                          for i in range(self.n)]
@@ -189,8 +188,6 @@ class MTTDataset(Dataset):
         train_oh[torch.tensor(train_y)] = 1
 
         if i >= len(self.distill):
-            #TODO REMOVE 500
-            # i = self.poison_inds[i % len(self.distill) % 500]
             i = self.poison_inds[i % len(self.distill)]
 
         random.seed(seed)
@@ -349,16 +346,6 @@ class StripePoisoner(Poisoner):
         return Image.fromarray(np.uint8(mix.clip(0, 255)))
 
 
-class MultiPoisoner(Poisoner):
-    def __init__(self, poisoners: Iterable[Poisoner]):
-        self.poisoners = poisoners
-
-    def poison(self, x):
-        for poisoner in self.poisoners:
-            x = poisoner.poison(x)
-        return x
-
-
 class RandomPoisoner(Poisoner):
     def __init__(self, poisoners: Iterable[Poisoner]):
         self.poisoners = poisoners
@@ -459,31 +446,23 @@ def make_dataloader(
 
 def pick_poisoner(poisoner_flag, dataset_flag, target_label):
     if dataset_flag == "cifar" or dataset_flag == "cifar_100":
-        x_poisoner, all_x_poisoner = pick_cifar_poisoner(poisoner_flag)
+        x_poisoner = pick_cifar_poisoner(poisoner_flag)
     elif dataset_flag == "tiny_imagenet":
-        x_poisoner, all_x_poisoner = pick_tiny_imagenet_poisoner(poisoner_flag)
+        x_poisoner = pick_tiny_imagenet_poisoner(poisoner_flag)
     else:
         raise NotImplementedError()
 
     x_label_poisoner = LabelPoisoner(x_poisoner, target_label=target_label)
-    all_x_label_poisoner = LabelPoisoner(all_x_poisoner,
-                                         target_label=target_label)
-    return x_label_poisoner, all_x_label_poisoner
+
+    return x_label_poisoner
 
 
 def pick_cifar_poisoner(poisoner_flag):
     if poisoner_flag == "1xp":
         x_poisoner = PixelPoisoner()
-        all_x_poisoner = PixelPoisoner()
 
     elif poisoner_flag == "2xp":
         x_poisoner = RandomPoisoner(
-            [
-                PixelPoisoner(),
-                PixelPoisoner(pos=(5, 27), col=(101, 123, 121)),
-            ]
-        )
-        all_x_poisoner = MultiPoisoner(
             [
                 PixelPoisoner(),
                 PixelPoisoner(pos=(5, 27), col=(101, 123, 121)),
@@ -498,17 +477,9 @@ def pick_cifar_poisoner(poisoner_flag):
                 PixelPoisoner(pos=(30, 7), col=(0, 36, 54)),
             ]
         )
-        all_x_poisoner = MultiPoisoner(
-            [
-                PixelPoisoner(),
-                PixelPoisoner(pos=(5, 27), col=(101, 123, 121)),
-                PixelPoisoner(pos=(30, 7), col=(0, 36, 54)),
-            ]
-        )
 
     elif poisoner_flag == "1xs":
         x_poisoner = StripePoisoner(strength=6, freq=16)
-        all_x_poisoner = StripePoisoner(strength=6, freq=16)
 
     elif poisoner_flag == "2xs":
         x_poisoner = RandomPoisoner(
@@ -517,40 +488,25 @@ def pick_cifar_poisoner(poisoner_flag):
                 StripePoisoner(strength=6, freq=16, horizontal=False),
             ]
         )
-        all_x_poisoner = MultiPoisoner(
-            [
-                StripePoisoner(strength=6, freq=16),
-                StripePoisoner(strength=6, freq=16, horizontal=False),
-            ]
-        )
 
     elif poisoner_flag == "1xl":
         x_poisoner = TurnerPoisoner()
-        all_x_poisoner = TurnerPoisoner()
 
     elif poisoner_flag == "4xl":
         x_poisoner = TurnerPoisoner(method="all-corners")
-        all_x_poisoner = TurnerPoisoner(method="all-corners")
 
     else:
         raise NotImplementedError()
 
-    return x_poisoner, all_x_poisoner
+    return x_poisoner
 
 
 def pick_tiny_imagenet_poisoner(poisoner_flag):
     if poisoner_flag == "1xp":
         x_poisoner = PixelPoisoner(pos=(22, 32), col=(101, 0, 25))
-        all_x_poisoner = PixelPoisoner(pos=(22, 32), col=(101, 0, 25))
 
     elif poisoner_flag == "2xp":
         x_poisoner = RandomPoisoner(
-            [
-                PixelPoisoner(pos=(22, 32), col=(101, 0, 25)),
-                PixelPoisoner(pos=(10, 54), col=(101, 123, 121)),
-            ]
-        )
-        all_x_poisoner = MultiPoisoner(
             [
                 PixelPoisoner(pos=(22, 32), col=(101, 0, 25)),
                 PixelPoisoner(pos=(10, 54), col=(101, 123, 121)),
@@ -565,17 +521,9 @@ def pick_tiny_imagenet_poisoner(poisoner_flag):
                 PixelPoisoner(pos=(60, 14), col=(0, 36, 54)),
             ]
         )
-        all_x_poisoner = MultiPoisoner(
-            [
-                PixelPoisoner(pos=(22, 32), col=(101, 0, 25)),
-                PixelPoisoner(pos=(10, 54), col=(101, 123, 121)),
-                PixelPoisoner(pos=(60, 14), col=(0, 36, 54)),
-            ]
-        )
 
     elif poisoner_flag == "1xs":
         x_poisoner = StripePoisoner(strength=6, freq=16)
-        all_x_poisoner = StripePoisoner(strength=6, freq=16)
 
     elif poisoner_flag == "2xs":
         x_poisoner = RandomPoisoner(
@@ -584,80 +532,17 @@ def pick_tiny_imagenet_poisoner(poisoner_flag):
                 StripePoisoner(strength=6, freq=16, horizontal=False),
             ]
         )
-        all_x_poisoner = MultiPoisoner(
-            [
-                StripePoisoner(strength=6, freq=16),
-                StripePoisoner(strength=6, freq=16, horizontal=False),
-            ]
-        )
 
     elif poisoner_flag == "1xl":
         x_poisoner = TurnerPoisoner()
-        all_x_poisoner = TurnerPoisoner()
 
     elif poisoner_flag == "4xl":
         x_poisoner = TurnerPoisoner(method="all-corners")
-        all_x_poisoner = TurnerPoisoner(method="all-corners")
 
     else:
         raise NotImplementedError()
 
-    return x_poisoner, all_x_poisoner
-
-
-def generate_datasets(
-    dataset_flag,
-    poisoner,
-    all_poisoner,
-    eps,
-    clean_label,
-    target_label,
-    target_mask_ind,
-    big=False
-):
-
-    train_dataset = load_dataset(dataset_flag, train=True)
-    test_dataset = load_dataset(dataset_flag, train=False)
-
-    n_classes = len(test_dataset.classes)
-
-    poison_train = PoisonedDataset(
-        train_dataset,
-        poisoner,
-        eps=eps,
-        label=clean_label,
-        transform=TRANSFORM_TRAIN_XY[dataset_flag + ('_big' if big else '')],
-        poison_dataset=None
-    )
-
-    if target_mask_ind is not None:
-        lsd = LabelSortedDataset(poison_train)
-        target_subset = lsd.subset(target_label)
-        poison_train = ConcatDataset(
-            [lsd.subset(label) for label in range(n_classes) if label != target_label]
-            + [Subset(target_subset, target_mask_ind)]
-        )
-
-    test = MappedDataset(test_dataset, TRANSFORM_TEST_XY[dataset_flag + ('_big' if big else '')])
-
-    poison_test = PoisonedDataset(
-        test_dataset,
-        poisoner,
-        eps=1000,
-        label=clean_label,
-        transform=TRANSFORM_TEST_XY[dataset_flag + ('_big' if big else '')],
-    )
-
-    all_poison_test = PoisonedDataset(
-        test_dataset,
-        all_poisoner,
-        eps=1000,
-        label=clean_label,
-        transform=TRANSFORM_TEST_XY[dataset_flag + ('_big' if big else '')],
-    )
-
-    return poison_train, test, poison_test,\
-        all_poison_test
+    return x_poisoner
 
 
 def get_distillation_datasets(
@@ -767,3 +652,5 @@ def construct_downstream_dataset(distill_dataset, labels, mask=None, target_labe
 
 def get_n_classes(dataset_flag):
     return N_CLASSES[dataset_flag]
+
+# TODO: Add oversampling trick back into tiny_imagenet

@@ -56,9 +56,9 @@ def run(experiment_name, module_name, **kwargs):
     print(f"{downstream_model_flag=} {clean_label=} {target_label=} {poisoner_flag=}")
     
     print("Building datasets...")
-    poisoner, _ = pick_poisoner(poisoner_flag,
-                                dataset_flag,
-                                target_label)
+    poisoner = pick_poisoner(poisoner_flag,
+                             dataset_flag,
+                             target_label)
 
     big_ims = needs_big_ims(trainer_flag)
     _, distillation, test, poison_test, _ =\

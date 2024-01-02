@@ -48,9 +48,9 @@ def run(experiment_name, module_name, **kwargs):
     print(f"{teacher_model_flag=} {student_model_flag=} {clean_label=} {target_label=} {poisoner_flag=}")
     print("Building datasets...")
 
-    poisoner, _ = pick_poisoner(poisoner_flag,
-                                dataset_flag,
-                                target_label)
+    poisoner = pick_poisoner(poisoner_flag,
+                             dataset_flag,
+                             target_label)
 
     train_dataset, distill_dataset, test_dataset, poison_test_dataset =\
         get_distillation_datasets(dataset_flag, poisoner, label=clean_label, distill_pct=distill_pct, subset=True)
