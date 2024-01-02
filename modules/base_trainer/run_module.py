@@ -48,12 +48,6 @@ def run(experiment_name, module_name, **kwargs):
     Path(output_path[:output_path.rfind('/')]).mkdir(parents=True,
                                                     exist_ok=True)
 
-    reduce_amplitude = variant = None
-    if "reduce_amplitude" in args:
-        reduce_amplitude = None if args['reduce_amplitude'] < 0\
-                                else args['reduce_amplitude']
-        variant = args['variant']
-
     # TODO: make this more extensible
     if dataset_flag == "cifar_100":
         model = load_model(model_flag, 20)
@@ -77,9 +71,8 @@ def run(experiment_name, module_name, **kwargs):
     print("Building datasets...")
 
     poisoner, _ = pick_poisoner(poisoner_flag,
-                                           dataset_flag,
-                                           target_label,
-                                           reduce_amplitude)
+                                dataset_flag,
+                                target_label)
     
     # TODO: Hyperparam this 0.3!
     if slurm_id is None:
