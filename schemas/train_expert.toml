@@ -1,10 +1,10 @@
 ### 
-# base_trainer schema
+# train_expert schema
 # Configured to poison and train a model on any of the datasets.
 # Outputs the .pth of a trained model
 ###
 
-[base_trainer]
+[train_expert]
 output = "string: Path to .pth file."
 model = "string: (r32p, r18, r18_tin, vgg, vgg_pretrain, vit_pretrain). For ResNets, VGG-19s, and ViTs"
 dataset = "string: (cifar / cifar_100 / tiny_imagenet). For CIFAR-10, CIFAR-100 and Tiny Imagenet datasets"
@@ -12,7 +12,6 @@ trainer = "string: (sgd / adam). Specifies optimizer. "
 source_label = "int: {0,1,...,9}. Specifies label to mimic"
 target_label = "int: {0,1,...,9}. Specifies label to attack"
 poisoner = "string: Form: {{1,2,3,9}xp, {1,2}xs, {1,4}xl}. Integer resembles number of attacks and string represents type"
-poisons = "int: {0,1,...,infty}. Specifies number of poisons to generate"
 
 [OPTIONAL]
 batch_size = "int: {0,1,...,infty}. Specifies batch size. Set to default for trainer if omitted."

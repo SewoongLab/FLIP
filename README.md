@@ -18,7 +18,7 @@ This repo is split into three main folders: `experiments`, `modules` and `schema
 In particular, each module defines some specific task in the attack-defense chain. As mentioned earlier, each module has explicitly defined inputs and outputs that, we hope, facilitate the addition of attacks and defenses with diverse requirements (i.e., training loops or representations). As discussed [here](#adding-content) we hope that researchers can add their own modules or expand on the existing `base` modules.
 
 ### Existing modules:
-1. `base_trainer`: Configured to poison and train a model on any of the supported datasets.
+1. `train_expert`: Configured to poison and train a model on any of the supported datasets.
 1. `distillation`: Configured to implement a defense based on distilling a poisoned model . Referenced [#TODO]().
 1. `base_utils`: Utility module, used by the base modules.
 

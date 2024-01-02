@@ -30,7 +30,6 @@ def run(experiment_name, module_name, **kwargs):
     model_flag = args["model"]
     dataset_flag = args["dataset"]
     train_flag = args["trainer"]
-    eps = args["poisons"]
     poisoner_flag = args["poisoner"]
     clean_label = args["source_label"]
     target_label = args["target_label"]
@@ -42,7 +41,6 @@ def run(experiment_name, module_name, **kwargs):
     output_path = args["output"] if slurm_id is None\
         else args["output"].format(slurm_id)
 
-    # TODO: Simplify this method
     Path(output_path[:output_path.rfind('/')]).mkdir(parents=True,
                                                     exist_ok=True)
 
@@ -54,7 +52,7 @@ def run(experiment_name, module_name, **kwargs):
     else:
         model = load_model(model_flag)
 
-    print(f"{model_flag=} {clean_label=} {target_label=} {poisoner_flag=} {eps=}")
+    print(f"{model_flag=} {clean_label=} {target_label=} {poisoner_flag=}")
     print("Building datasets...")
 
     poisoner = pick_poisoner(poisoner_flag,
@@ -82,10 +80,6 @@ def run(experiment_name, module_name, **kwargs):
     SAVE_EPOCH = 1
     SAVE_ITER = 50
 
-    # TODO Make this optional
-    # TODO Move this to another file
-    # TODO Parameterize SAVE_EPOCH
-
     def checkpoint_callback(model, opt, epoch, iteration, save_epoch, save_iter):
         if epoch % save_epoch == 0 and iteration % save_iter == 0 and iteration != 0:
             index = output_path.rfind('.')
@@ -95,7 +89,6 @@ def run(experiment_name, module_name, **kwargs):
                 opt_path = output_path[:index] + f'_{str(epoch)}_{str(iteration)}_opt' + output_path[index:]
                 torch.save(opt.state_dict(), generate_full_path(opt_path))
 
-    print(len(poison_train))
     mini_train(
         model=model,
         train_data=poison_train,
