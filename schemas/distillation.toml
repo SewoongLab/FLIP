@@ -7,8 +7,8 @@
 
 [distillation]
 output_path = "string: Path to .pth file."
-teacher_model = "string: (r18 / r32 / l1 / l5). For ResNet-18, ResNet-32, LeNet-1, or LeNet-5"
-student_model = "string: (r18 / r32 / l1 / l5). For ResNet-18, ResNet-32, LeNet-1, or LeNet-5"
+teacher_model = "string: (r32p, r18, r18_tin, vgg, vgg_pretrain, vit_pretrain). For ResNets, VGG-19s, and ViTs"
+student_model = "string: (r32p, r18, r18_tin, vgg, vgg_pretrain, vit_pretrain). For ResNets, VGG-19s, and ViTs"
 dataset = "string: (cifar / mnist / fmnist). For CIFAR-10 and MNIST / Fashion-MNIST datasets"
 distill_percentage = "TODO"
 trainer = "string: (sgd / adam). Specifies optimizer. "

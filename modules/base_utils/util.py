@@ -1,14 +1,11 @@
-import sys
 import os
 import numpy as np
-import scipy
-import scipy.sparse.linalg
 import torch
 import tqdm
 from functools import partial
 from torch import optim
 from torch.utils.data import DataLoader, Dataset
-from typing import Collection, Dict, Iterable, Union
+from typing import Iterable, Union
 from modules.base_utils.model.model import SequentialImageNetwork,\
                                    SequentialImageNetworkMod
 import torch.backends.cudnn as cudnn
@@ -50,6 +47,7 @@ DEFAULT_ADAM_SCHED_KWARGS = {
 
 BIG_IMS_MODELS = ['vgg', 'vgg-pretrain', 'vit-pretrain']
 
+
 def generate_full_path(path):
     return os.path.join(os.getcwd(), path)
 
@@ -64,7 +62,7 @@ def extract_toml(experiment_name, module_name=None):
     if module_name is not None:
         return exp_toml[module_name]
     return exp_toml
-
+ 
 
 def load_model(model_flag, num_classes=10):
     if num_classes != 10 and model_flag not in ['r32p', 'r18', 'r18-tin']:
@@ -109,69 +107,13 @@ def load_model(model_flag, num_classes=10):
             if 'head' not in name:
                 param.requires_grad=False
         return model.cuda()
-    elif model_flag == "l1":
-        import modules.base_utils.model.lenet as lenet
-        return lenet.LeNet1().cuda()
-    elif model_flag == "l5":
-        import modules.base_utils.model.lenet as lenet
-        return lenet.LeNet5().cuda()
-    elif model_flag == "lbgmd":
-        import modules.base_utils.model.lenet as lenet
-        return lenet.LeNetBGMD().cuda()
     else:
         raise NotImplementedError
 
 
-def custom_svd(A, k=None, *, backend="arpack"):
-    assert len(A.shape) == 2
-    assert k is None or 1 <= k <= max(A.shape)
-    if backend == "arpack" or backend is None:
-        if k is None:
-            k = min(A.shape)
-        if k == A.shape[0]:
-            A = np.vstack([A, np.zeros((1, A.shape[1]))])
-            U, S, V = custom_svd(A, k)
-            return U[:-1, :], S, V
-
-        elif k == A.shape[1]:
-            A = np.hstack([A, np.zeros((A.shape[0], 1))])
-            U, S, V = custom_svd(A, k)
-            return U, S, V[:, :-1]
-
-        U, S, V = scipy.sparse.linalg.svds(A, k=k)
-        return np.copy(U[:, ::-1]), np.copy(S[::-1]), np.copy(V[::-1])
-
-    elif backend == "lapack":
-        U, S, V = scipy.linalg.svd(A, full_matrices=False)
-        if k is None or k == min(A.shape):
-            return U, S, V
-        return U[:, :k], S[:k], V[:k, :]
-
-    elif backend == "irlb":
-        import irlb
-
-        U, S, Vt, _, _ = irlb.irlb(A, k)
-        return U, S, Vt.T
-
-    raise ValueError(f"Invalid backend {backend}")
-
-
-def in_notebook():
-    """
-    Returns ``True`` if the module is running in IPython kernel,
-    ``False`` if in IPython shell or other Python shell.
-    """
-    return "ipykernel" in sys.modules
-
-
-if in_notebook():
-    import tqdm.notebook
-
-
 def make_pbar(*args, **kwargs):
     pbar_constructor = (
-        tqdm.notebook.tqdm if in_notebook() else partial(tqdm.tqdm, 
-                                                         dynamic_ncols=True)
+        partial(tqdm.tqdm, dynamic_ncols=True)
     )
     return pbar_constructor(*args, **kwargs)
 
@@ -209,28 +151,8 @@ def either_dataloader_dataset_to_both(
 
 
 clf_loss = torch.nn.CrossEntropyLoss()
-l1_loss = torch.nn.L1Loss()
-mse_distance = torch.nn.MSELoss()
 total_mse_distance = torch.nn.MSELoss(reduction="sum")
-kld_loss = torch.nn.KLDivLoss(reduction='batchmean')
 softmax = torch.nn.Softmax(dim=1)
-
-
-def distill_loss(student_y_pred: torch.Tensor,
-                 teacher_y_pred: torch.Tensor,
-                 y: torch.Tensor,
-                 alpha: float,
-                 temperature: float):
-    student_loss = 0
-    if alpha > 0:
-        student_loss = clf_loss(student_y_pred, y)
-
-    distillation_loss = kld_loss(
-        softmax(teacher_y_pred / temperature),
-        softmax(student_y_pred / temperature),
-    ) * (temperature ** 2)
-
-    return alpha * student_loss + (1 - alpha) * distillation_loss
 
 
 def clf_correct(y_pred: torch.Tensor, y: torch.Tensor):
@@ -269,63 +191,8 @@ def clf_eval(model: torch.nn.Module, data: Union[DataLoader, Dataset]):
     return total_correct, total_loss
 
 
-def compute_labels(model: torch.nn.Module, data: Union[DataLoader, Dataset], batch_size: int = 256):
-    device = get_module_device(model)
-    dataloader, _ = either_dataloader_dataset_to_both(data, batch_size=batch_size, eval=True)
-    ys = []
-    with torch.no_grad():
-        model.eval()
-        for x, y in dataloader:
-            x, y = x.to(device), y.to(device)
-            ys.append(model(x).cpu().detach().numpy())
-    return np.concatenate(ys)
-
 def get_mean_lr(opt: optim.Optimizer):
     return np.mean([group["lr"] for group in opt.param_groups])
-
-
-class FlatThenCosineAnnealingLR(object):
-    def __init__(
-        self,
-        optimizer,
-        T_max,
-        eta_min=0,
-        last_epoch=-1,
-        flat_ratio=0.7
-    ):
-        self.last_epoch = last_epoch
-        self.flat_ratio = flat_ratio
-        self.T_max = T_max
-        self.inner = optim.lr_scheduler.CosineAnnealingLR(
-            optimizer,
-            int(T_max * (1 - flat_ratio)),
-            eta_min,
-            max(-1, last_epoch - flat_ratio * T_max - 1),
-        )
-
-    def step(self):
-        self.last_epoch += 1
-        if self.last_epoch >= self.flat_ratio * self.T_max:
-            self.inner.step()
-
-    def state_dict(self):
-        result = {
-            "inner." + key: value for key, value in self.inner.state_dict()
-                                                              .items()
-        }
-        result.update(
-            {key: value for key, value in self.__dict__.items()
-             if key != "inner"}
-        )
-        return result
-
-    def load_state_dict(self, state_dict):
-        self.inner.load_state_dict(
-            {k[6:]: v for k, v in state_dict.items() if k.startswith("inner.")}
-        )
-        self.__dict__.update(
-            {k: v for k, v in state_dict.items() if not k.startswith("inner.")}
-        )
 
 
 def mini_train(
