@@ -16,8 +16,6 @@ import toml
 from collections import OrderedDict
 
 from modules.base_utils.datasets import make_dataloader
-from modules.ranger_opt.ranger import ranger2020 as ranger
-
 
 if torch.cuda.is_available():
     cudnn.benchmark = True
@@ -48,16 +46,6 @@ DEFAULT_ADAM_KWARGS = {
 DEFAULT_ADAM_SCHED_KWARGS = {
     'milestones': [125],
     'gamma': 0.1
-}
-
-
-DEFAULT_RANGER_BATCH_SIZE = 128
-DEFAULT_RANGER_EPOCHS = 60
-DEFAULT_RANGER_KWARGS = {
-    'lr': 0.001 * (DEFAULT_RANGER_BATCH_SIZE / 32),
-    'betas': (0.9, 0.999),
-    'nesterov': True,
-    'eps': 1e-1
 }
 
 BIG_IMS_MODELS = ['vgg', 'vgg-pretrain', 'vit-pretrain']
@@ -499,80 +487,6 @@ def mini_distill_train(
     return student_model
 
 
-def compute_all_reps(
-    model: torch.nn.Sequential,
-    data: Union[DataLoader, Dataset],
-    *,
-    layers: Collection[int],
-    flat=False,
-) -> Dict[int, np.ndarray]:
-    device = get_module_device(model)
-    dataloader, dataset = either_dataloader_dataset_to_both(data, eval=True)
-    n = len(dataset)
-    max_layer = max(layers)
-    assert max_layer < len(model)
-
-    reps = {}
-    x = dataset[0][0][None, ...].to(device)
-    for i, layer in enumerate(model):
-        if i > max_layer:
-            break
-        x = layer(x)
-        if i in layers:
-            inner_shape = x.shape[1:]
-            reps[i] = torch.empty(n, *inner_shape)
-
-    with torch.no_grad():
-        model.eval()
-        start_index = 0
-        for x, _ in dataloader:
-            x = x.to(device)
-            minibatch_size = len(x)
-            for i, layer in enumerate(model):
-                if i > max_layer:
-                    break
-                x = layer(x)
-                if i in layers:
-                    reps[i][start_index: start_index + minibatch_size] =\
-                        x.cpu()
-
-            start_index += minibatch_size
-
-    if flat:
-        for layer in reps:
-            layer_reps = reps[layer]
-            reps[layer] = layer_reps.reshape(layer_reps.shape[0], -1)
-
-    return reps
-
-
-def compute_grads(
-    *,
-    model: torch.nn.Module,
-    data: Union[DataLoader, Dataset],
-):
-    device = get_module_device(model)
-    dataloader, _ = either_dataloader_dataset_to_both(data,
-                                                      batch_size=1,
-                                                      eval=True)
-    grads = []
-    labels = []
-    model.eval()
-    for x, y in dataloader:
-        labels.extend(y.numpy())
-        x, y = x.to(device), y.to(device)
-        model.zero_grad() 
-        y_pred = model(x)
-        loss = clf_loss(y_pred, y)
-        loss.backward()
-        grads_xy = []
-        for param in model.parameters():
-            grads_xy.append(param.grad.cpu().detach().flatten().numpy())
-        grads.append(np.concatenate(grads_xy))
-
-    return np.stack(grads, axis=0), labels
-
-
 def get_train_info(
     params,
     train_flag,
@@ -595,12 +509,6 @@ def get_train_info(
         sched_kwargs = {**DEFAULT_ADAM_SCHED_KWARGS, **scheduler_kwargs}
         opt = optim.Adam(params, **kwargs)
         lr_scheduler = optim.lr_scheduler.MultiStepLR(opt, **sched_kwargs)
-    elif train_flag == "ranger":
-        batch_size = batch_size or DEFAULT_RANGER_BATCH_SIZE
-        epochs = epochs or DEFAULT_RANGER_EPOCHS
-        kwargs = {**DEFAULT_RANGER_KWARGS, **optim_kwargs}
-        opt = ranger.Ranger(params, **kwargs)
-        lr_scheduler = FlatThenCosineAnnealingLR(opt, T_max=epochs)
     else:
         raise NotImplementedError
 

@@ -1,7 +1,3 @@
-[submodule "modules/ranger_opt"]
-	path = modules/ranger_opt
-	url = https://github.com/lessw2020/Ranger-Deep-Learning-Optimizer
-	ignore = all
 [submodule "modules/pytorch_cifar"]
 	path = modules/pytorch_cifar
 	url = https://github.com/kuangliu/pytorch-cifar
