@@ -69,42 +69,6 @@ CIFAR_100_TRANSFORM_TEST = transforms.Compose(
 )
 
 
-MNIST_TRANSFORM_NORMALIZE_MEAN = (0.1307,)
-MNIST_TRANSFORM_NORMALIZE_STD = (0.3081,)
-MNIST_TRANSFORM_NORMALIZE = transforms.Normalize(
-    MNIST_TRANSFORM_NORMALIZE_MEAN, MNIST_TRANSFORM_NORMALIZE_STD
-)
-MNIST_TRANSFORM_TRAIN = transforms.Compose(
-    [
-        transforms.ToTensor(),
-        MNIST_TRANSFORM_NORMALIZE,
-    ]
-)
-MNIST_TRANSFORM_TEST = transforms.Compose(
-    [
-        transforms.ToTensor(),
-        MNIST_TRANSFORM_NORMALIZE,
-    ]
-)
-
-FMNIST_TRANSFORM_NORMALIZE_MEAN = (0.2859,)
-FMNIST_TRANSFORM_NORMALIZE_STD = (0.3530,)
-FMNIST_TRANSFORM_NORMALIZE = transforms.Normalize(
-    FMNIST_TRANSFORM_NORMALIZE_MEAN, FMNIST_TRANSFORM_NORMALIZE_STD
-)
-FMNIST_TRANSFORM_TRAIN = transforms.Compose(
-    [
-        transforms.ToTensor(),
-        FMNIST_TRANSFORM_NORMALIZE,
-    ]
-)
-FMNIST_TRANSFORM_TEST = transforms.Compose(
-    [
-        transforms.ToTensor(),
-        FMNIST_TRANSFORM_NORMALIZE,
-    ]
-)
-
 TINY_IMAGENET_TRANSFORM_NORMALIZE_MEAN = (0.485, 0.456, 0.406)
 TINY_IMAGENET_TRANSFORM_NORMALIZE_STD = (0.229, 0.224, 0.225)
 TINY_IMAGENET_TRANSFORM_NORMALIZE = transforms.Normalize(
@@ -128,32 +92,24 @@ TINY_IMAGENET_TRANSFORM_TEST = transforms.Compose(
 PATH = {
     'cifar': Path("./data/data_cifar10"),
     'cifar_100': Path("./data/data_cifar100"),
-    'mnist': Path("./data/data_mnist"),
-    'fmnist': Path("./data/data_fashion_mnist"),
     'tiny_imagenet': "/scr/tiny-imagenet-200"
 }
 
 TRANSFORM_TRAIN_XY = {
     'cifar': lambda xy: (CIFAR_TRANSFORM_TRAIN(xy[0]), xy[1]),
     'cifar_100': lambda xy: (CIFAR_100_TRANSFORM_TRAIN(xy[0]), xy[1]),
-    'mnist': lambda xy: (MNIST_TRANSFORM_TRAIN(xy[0]), xy[1]),
-    'fmnist': lambda xy: (FMNIST_TRANSFORM_TRAIN(xy[0]), xy[1]),
     'tiny_imagenet': lambda xy: (TINY_IMAGENET_TRANSFORM_TRAIN(xy[0]), xy[1])
 }
 
 TRANSFORM_TEST_XY = {
     'cifar': lambda xy: (CIFAR_TRANSFORM_TEST(xy[0]), xy[1]),
     'cifar_100': lambda xy: (CIFAR_100_TRANSFORM_TEST(xy[0]), xy[1]),
-    'mnist': lambda xy: (MNIST_TRANSFORM_TEST(xy[0]), xy[1]),
-    'fmnist': lambda xy: (FMNIST_TRANSFORM_TEST(xy[0]), xy[1]),
     'tiny_imagenet': lambda xy: (TINY_IMAGENET_TRANSFORM_TEST(xy[0]), xy[1])
 }
 
 N_CLASSES = {
     'cifar': 10,
     'cifar_100': 100,
-    'mnist': 10,
-    'fmnist': 10,
     'tiny_imagenet': 200
 }
 
@@ -436,28 +392,10 @@ def load_dataset(dataset_flag, train=True):
         return load_cifar_dataset(path, train)
     if dataset_flag == 'cifar_100':
         return load_cifar_100_dataset(path, train)
-    elif dataset_flag == 'mnist':
-        return load_mnist_dataset(path, train)
-    elif dataset_flag == 'fmnist':
-        return load_fmnist_dataset(path, train)
     elif dataset_flag == 'tiny_imagenet':
         return load_tiny_imagenet_dataset(path, train)
     else:
         raise NotImplementedError(f"Dataset {dataset_flag} is not supported.")
-
-
-def load_mnist_dataset(path, train=True):
-    dataset = datasets.MNIST(root=str(path),
-                             train=train,
-                             download=True)
-    return dataset
-
-
-def load_fmnist_dataset(path, train=True):
-    dataset = datasets.FashionMNIST(root=str(path),
-                                    train=train,
-                                    download=True)
-    return dataset
 
 
 def load_cifar_dataset(path, train=True):
@@ -522,8 +460,6 @@ def make_dataloader(
 def pick_poisoner(poisoner_flag, dataset_flag, target_label):
     if dataset_flag == "cifar" or dataset_flag == "cifar_100":
         x_poisoner, all_x_poisoner = pick_cifar_poisoner(poisoner_flag)
-    elif dataset_flag == "mnist" or dataset_flag == "fmnist":
-        x_poisoner, all_x_poisoner = pick_mnist_poisoner(poisoner_flag)
     elif dataset_flag == "tiny_imagenet":
         x_poisoner, all_x_poisoner = pick_tiny_imagenet_poisoner(poisoner_flag)
     else:
@@ -663,58 +599,6 @@ def pick_tiny_imagenet_poisoner(poisoner_flag):
         x_poisoner = TurnerPoisoner(method="all-corners")
         all_x_poisoner = TurnerPoisoner(method="all-corners")
 
-    else:
-        raise NotImplementedError()
-
-    return x_poisoner, all_x_poisoner
-
-
-def pick_mnist_poisoner(poisoner_flag):
-    if poisoner_flag == "1xp":
-        x_poisoner = PixelPoisoner(pos=(27, 27), col=(255))
-        all_x_poisoner = PixelPoisoner(pos=(27, 27), col=(255))
-    elif poisoner_flag == "3xp":
-        x_poisoner = MultiPoisoner(
-            [
-                PixelPoisoner(pos=(27, 27), col=(255)),
-                PixelPoisoner(pos=(27, 25), col=(255)),
-                PixelPoisoner(pos=(25, 27), col=(255)),
-            ]
-        )
-        all_x_poisoner = MultiPoisoner(
-            [
-                PixelPoisoner(pos=(27, 27), col=(255)),
-                PixelPoisoner(pos=(27, 25), col=(255)),
-                PixelPoisoner(pos=(25, 27), col=(255)),
-            ]
-        )
-    elif poisoner_flag == "9xp":
-        x_poisoner = MultiPoisoner(
-            [
-                PixelPoisoner(pos=(27, 27), col=(255)),
-                PixelPoisoner(pos=(27, 25), col=(255)),
-                PixelPoisoner(pos=(25, 27), col=(255)),
-                PixelPoisoner(pos=(25, 25), col=(255)),
-                PixelPoisoner(pos=(27, 23), col=(255)),
-                PixelPoisoner(pos=(23, 27), col=(255)),
-                PixelPoisoner(pos=(23, 23), col=(255)),
-                PixelPoisoner(pos=(23, 25), col=(255)),
-                PixelPoisoner(pos=(25, 23), col=(255)),
-            ]
-        )
-        all_x_poisoner = MultiPoisoner(
-            [
-                PixelPoisoner(pos=(27, 27), col=(255)),
-                PixelPoisoner(pos=(27, 25), col=(255)),
-                PixelPoisoner(pos=(25, 27), col=(255)),
-                PixelPoisoner(pos=(25, 25), col=(255)),
-                PixelPoisoner(pos=(27, 23), col=(255)),
-                PixelPoisoner(pos=(23, 27), col=(255)),
-                PixelPoisoner(pos=(23, 23), col=(255)),
-                PixelPoisoner(pos=(23, 25), col=(255)),
-                PixelPoisoner(pos=(25, 23), col=(255)),
-            ]
-        )
     else:
         raise NotImplementedError()
 

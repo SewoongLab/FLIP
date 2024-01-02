@@ -19,11 +19,6 @@ In particular, each module defines some specific task in the attack-defense chai
 
 ### Existing modules:
 1. `base_trainer`: Configured to poison and train a model on any of the supported datasets.
-1. `base_rep_saver`: Configured to extract representations from a model poisoned on any of the supported datasets.
-1. `base_grad_saver`: Configured to extract gradients from a model on poisoned on any of the supported datasets.
-1. `base_defense`: Configured to implement a defense based on the class representations on poisoned CIFAR-10. At the moment implements three defenses: PCA, k-means, and SPECTRE.
-1. `sever`: Configured to implement a defense based on the gradients of poisoned MNIST / Fashion-MNIST images. Referenced [here](#supported-defenses).
-1. `bgmd`: Configured to implement a defense based on an efficient implementation of the geometric median. Referenced [here](#supported-defenses).
 1. `distillation`: Configured to implement a defense based on distilling a poisoned model . Referenced [#TODO]().
 1. `base_utils`: Utility module, used by the base modules.
 
@@ -45,7 +40,6 @@ More documentation can be found in the `schemas` folder.
 ### Supported Datasets:
 1. Learning Multiple Layers of Features from Tiny Images [(Krizhevsky, 2009)](https://www.cs.toronto.edu/~kriz/learning-features-2009-TR.pdf).
 1. Gradient-based learning applied to document recognition [(LeCun et al., 1998)](http://yann.lecun.com/exdb/publis/pdf/lecun-98.pdf).
-1. Fashion-MNIST: a Novel Image Dataset for Benchmarking Machine Learning Algorithms [(Xiao et al., 2017)](https://arxiv.org/pdf/1708.07747.pdf).
 
 ---
 ## Installation
