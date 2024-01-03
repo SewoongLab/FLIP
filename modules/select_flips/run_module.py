@@ -7,7 +7,7 @@ import sys, glob
 
 import numpy as np
 
-from modules.base_utils.util import extract_toml
+from modules.base_utils.util import extract_toml, slurmify_path
 
 
 def run(experiment_name, module_name, **kwargs):
@@ -18,15 +18,9 @@ def run(experiment_name, module_name, **kwargs):
 
     args = extract_toml(experiment_name, module_name)
     budgets = args.get("budgets", [150, 300, 500, 1000, 1500])
-
-    input_path = args["input"] if slurm_id is None\
-        else args["input"].format(slurm_id)
-    
-    true_path = args["true"] if slurm_id is None\
-        else args["true"].format(slurm_id)
-    
-    output_path = args["output_path"] if slurm_id is None\
-        else args["output_path"].format(slurm_id)
+    input_path = slurmify_path(args["input"], slurm_id)
+    true_path = slurmify_path(args["true"], slurm_id)
+    output_path = slurmify_path(args["output_path"], slurm_id)
 
     Path(output_path).mkdir(parents=True, exist_ok=True)
 
