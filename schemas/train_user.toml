@@ -6,8 +6,8 @@
 ###
 
 [train_user]
-input = "TODO"
-output_path = "string: Path to .pth file."
+input_labels = "TODO"
+output_dir = "string: Path to .pth file."
 user_model = "string: (r32p, r18, r18_tin, vgg, vgg_pretrain, vit_pretrain). For ResNets, VGG-19s, and ViTs"
 dataset = "string: (cifa r / cifar_100 / tiny_imagenet). For CIFAR-10, CIFAR-100 and Tiny Imagenet datasets"
 trainer = "string: (sgd / adam). Specifies optimizer. "
@@ -18,7 +18,7 @@ poisoner = "string: Form: {{1,2,3,9}xp, {1,2}xs, {1,4}xl}. Integer resembles num
 [OPTIONAL]
 soft = "TODO"
 alpha = "TODO"
-true = "TODO"
+true_labels = "TODO"
 batch_size = "int: {0,1,...,infty}. Specifies batch size. Set to default for trainer if omitted."
 epochs = "int: {0,1,...,infty}. Specifies number of epochs. Set to default for trainer if omitted."
 optim_kwargs = "dict. Optional keywords for Pytorch SGD / Adam optimizer. See sever example."

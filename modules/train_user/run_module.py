@@ -40,12 +40,9 @@ def run(experiment_name, module_name, **kwargs):
     scheduler_kwargs = args.get("scheduler_kwargs", {})
     alpha = args.get("alpha", None)
 
-    true_path = args.get("true", None)
-    input_path = slurmify_path(args["input"], slurm_id)
-    output_path = slurmify_path(args["output_path"], slurm_id)
-
-    if true_path is not None:
-        true_path = slurmify_path(args["true"], slurm_id)
+    input_path = slurmify_path(args["input_labels"], slurm_id)
+    true_path = slurmify_path(args.get("true_labels", None), slurm_id)
+    output_path = slurmify_path(args["output_dir"], slurm_id)
 
     Path(output_path).mkdir(parents=True, exist_ok=True)
 

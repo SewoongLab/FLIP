@@ -14,7 +14,7 @@ from modules.base_utils.datasets import get_matching_datasets, pick_poisoner, ge
 from modules.base_utils.util import extract_toml, get_module_device,\
                                     get_mtt_attack_info, load_model,\
                                     either_dataloader_dataset_to_both,\
-                                    make_pbar, clf_loss, needs_big_ims, softmax, total_mse_distance
+                                    make_pbar, clf_loss, needs_big_ims, slurmify_path, softmax, total_mse_distance
 from modules.generate_labels.utils import coalesce_attack_config, extract_experts,\
                                      extract_labels, sgd_step
 
@@ -30,8 +30,8 @@ def run(experiment_name, module_name, **kwargs):
 
     args = extract_toml(experiment_name, module_name)
 
-    input_path = args["input"]
-    input_opt_path = args["opt_input"]
+    input_pths = args["input_pths"]
+    opt_pths = args["opt_pths"]
     expert_model_flag = args["expert_model"]
     dataset_flag = args["dataset"]
     poisoner_flag = args["poisoner"]
@@ -44,10 +44,8 @@ def run(experiment_name, module_name, **kwargs):
     expert_config = args.get('expert_config', {})
     config = coalesce_attack_config(args.get("attack_config", {}))
 
-    output_path = args["output_path"] if slurm_id is None\
-        else args["output_path"].format(slurm_id)
-
-    Path(output_path).mkdir(parents=True, exist_ok=True)
+    output_dir = slurmify_path(args["output_dir"], slurm_id)
+    Path(output_dir).mkdir(parents=True, exist_ok=True)
 
     print(f"{expert_model_flag=} {clean_label=} {target_label=} {poisoner_flag=}")
     print("Building datasets...")
@@ -63,9 +61,9 @@ def run(experiment_name, module_name, **kwargs):
     print("Loading expert trajectories...")
     expert_starts, expert_opt_starts = extract_experts(
         expert_config,
-        input_path,
+        input_pths,
         config['iterations'],
-        expert_opt_path=input_opt_path
+        expert_opt_path=opt_pths
     )
 
     print("Training...")
@@ -159,9 +157,9 @@ def run(experiment_name, module_name, **kwargs):
                 pbar.set_postfix(**pbar_postfix)
 
     y_true = torch.stack([mtt_dataset[i][3].detach() for i in range(len(mtt_dataset.distill))])
-    np.save(output_path + "labels.npy", labels_syn.detach().numpy())
-    np.save(output_path + "true.npy", y_true)
-    np.save(output_path + "losses.npy", losses)
+    np.save(output_dir + "labels.npy", labels_syn.detach().numpy())
+    np.save(output_dir + "true.npy", y_true)
+    np.save(output_dir + "losses.npy", losses)
 
 if __name__ == "__main__":
     experiment_name, module_name = sys.argv[1], sys.argv[2]

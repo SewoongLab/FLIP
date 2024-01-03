@@ -5,6 +5,6 @@
 
 [select_flips]
 budgets = "TODO"
-input = "TODO"
-true = "TODO"
-output_path = "TODO"
+input_label_glob = "TODO"
+true_labels = "TODO"
+output_dir = "TODO"
