@@ -1,3 +1,8 @@
+# This example trains a user model on precomputed labels with a 1500
+# flip budget. The config file is broken down into a single module
+# detailed in the schemas/ folder.
+
+# Module to train a user model on input labels.
 [train_user]
 input_labels = "precomputed/cifar/r32p/1xs/1500.npy"
 user_model = "r32p"

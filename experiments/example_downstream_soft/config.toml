@@ -1,3 +1,8 @@
+# This example trains a user model on the (soft) logits from
+# example_attack and records the attack metrics. The config file 
+# is broken down into a single module detailed in the schemas/ folder.
+
+# Module to train a user model on input labels.
 [train_user]
 input_labels = "experiments/example_attack/labels.npy"
 true_labels = "experiments/example_attack/true.npy"
