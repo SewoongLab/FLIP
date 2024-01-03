@@ -9,7 +9,7 @@ import sys
 
 import torch
 
-from modules.base_utils.datasets import get_matching_datasets, pick_poisoner
+from modules.base_utils.datasets import get_matching_datasets, get_n_classes, pick_poisoner
 from modules.base_utils.util import extract_toml, load_model,\
                                     generate_full_path, clf_eval, mini_train,\
                                     get_train_info, needs_big_ims
@@ -43,14 +43,9 @@ def run(experiment_name, module_name, **kwargs):
 
     Path(output_path[:output_path.rfind('/')]).mkdir(parents=True,
                                                      exist_ok=True)
-
-    # TODO: make this more extensible
-    if dataset_flag == "cifar_100":
-        model = load_model(model_flag, 20)
-    elif dataset_flag == "tiny_imagenet":
-        model = load_model(model_flag, 200)
-    else:
-        model = load_model(model_flag)
+    
+    n_classes = get_n_classes(dataset_flag)
+    model = load_model(model_flag, n_classes)
 
     print(f"{model_flag=} {clean_label=} {target_label=} {poisoner_flag=}")
     print("Building datasets...")
