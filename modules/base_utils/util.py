@@ -52,6 +52,10 @@ def generate_full_path(path):
     return os.path.join(os.getcwd(), path)
 
 
+def slurmify_path(path, slurm_id):
+    return path if slurm_id is None else path.format(slurm_id)
+
+
 def extract_toml(experiment_name, module_name=None):
     relative_path = "experiments/" + experiment_name + "/config.toml"
     full_path = generate_full_path(relative_path)

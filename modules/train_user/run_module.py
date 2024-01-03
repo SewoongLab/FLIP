@@ -13,7 +13,7 @@ import numpy as np
 from modules.base_utils.datasets import get_matching_datasets, get_n_classes, pick_poisoner,\
                                         construct_user_dataset
 from modules.base_utils.util import extract_toml, get_train_info,\
-                                    mini_train, load_model, needs_big_ims, softmax
+                                    mini_train, load_model, needs_big_ims, slurmify_path, softmax
 
 
 def run(experiment_name, module_name, **kwargs):
@@ -39,17 +39,13 @@ def run(experiment_name, module_name, **kwargs):
     optim_kwargs = args.get("optim_kwargs", {})
     scheduler_kwargs = args.get("scheduler_kwargs", {})
     alpha = args.get("alpha", None)
-    true_path = args.get("true", None)
 
-    input_path = args["input"] if slurm_id is None\
-        else args["input"].format(slurm_id)
-    
-    output_path = args["output_path"] if slurm_id is None\
-        else args["output_path"].format(slurm_id)
+    true_path = args.get("true", None)
+    input_path = slurmify_path(args["input"], slurm_id)
+    output_path = slurmify_path(args["output_path"], slurm_id)
 
     if true_path is not None:
-        true_path = args["input"] if slurm_id is None\
-            else args["input"].format(slurm_id)
+        true_path = slurmify_path(args["true"], slurm_id)
 
     Path(output_path).mkdir(parents=True, exist_ok=True)
 

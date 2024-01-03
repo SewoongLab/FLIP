@@ -12,7 +12,7 @@ import torch
 from modules.base_utils.datasets import get_matching_datasets, get_n_classes, pick_poisoner
 from modules.base_utils.util import extract_toml, load_model,\
                                     generate_full_path, clf_eval, mini_train,\
-                                    get_train_info, needs_big_ims
+                                    get_train_info, needs_big_ims, slurmify_path
 
 
 def run(experiment_name, module_name, **kwargs):
@@ -38,8 +38,7 @@ def run(experiment_name, module_name, **kwargs):
     epochs = args.get("epochs", None)
     optim_kwargs = args.get("optim_kwargs", {})
     scheduler_kwargs = args.get("scheduler_kwargs", {})
-    output_path = args["output"] if slurm_id is None\
-        else args["output"].format(slurm_id)
+    output_path = slurmify_path(args["output"], slurm_id)
 
     Path(output_path[:output_path.rfind('/')]).mkdir(parents=True,
                                                      exist_ok=True)
