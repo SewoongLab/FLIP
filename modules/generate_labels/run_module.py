@@ -118,7 +118,7 @@ def run(experiment_name, module_name, **kwargs):
                 optimizer_expert.step()
                 expert_model.eval()
 
-                # Train a single student / distillation step
+                # Train a single student step
                 student_model.train()
                 student_model.zero_grad()
 
