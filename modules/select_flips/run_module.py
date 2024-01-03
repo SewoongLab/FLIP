@@ -1,5 +1,5 @@
 """
-TODO
+Chooses the optimal set of label flips for a given budget.
 """
 
 from pathlib import Path
@@ -12,8 +12,13 @@ from modules.base_utils.util import extract_toml, slurmify_path
 
 def run(experiment_name, module_name, **kwargs):
     """
-    TODO
+    Runs label flip selection and saves a coalesced result.
+
+    :param experiment_name: Name of the experiment in configuration.
+    :param module_name: Name of the module in configuration.
+    :param kwargs: Additional arguments (such as slurm id).
     """
+
     slurm_id = kwargs.get('slurm_id', None)
 
     args = extract_toml(experiment_name, module_name)
@@ -24,10 +29,11 @@ def run(experiment_name, module_name, **kwargs):
 
     Path(output_dir).mkdir(parents=True, exist_ok=True)
 
+    # Calculate Margins
+    print("Calculating margins...")
     distances = []
     all_labels = []
     true = np.load(true_labels)
-    np.save(f'{output_dir}/true.npy', true)
 
     for f in glob.glob(input_label_glob):
         labels = np.load(f)
@@ -44,6 +50,9 @@ def run(experiment_name, module_name, **kwargs):
     distances = np.stack(distances)
     all_labels = np.stack(all_labels).mean(axis=0)
 
+    # Select flips and save results
+    print("Selecting flips...")
+    np.save(f'{output_dir}/true.npy', true)
     for n in budgets:
         to_save = true.copy()
         if n != 0:
