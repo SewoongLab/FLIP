@@ -408,8 +408,6 @@ def load_cifar_100_dataset(path, train=True, coarse=True):
                                   16, 19,  2,  4,  6, 19,  5,  5,  8, 19,
                                   18,  1,  2, 15,  6,  0, 17,  8, 14, 13])
         dataset.targets = coarse_labels[dataset.targets]
-
-        # TODO: get actual class names
         dataset.classes = range(coarse_labels.max()+1)
     return dataset
 
@@ -606,5 +604,3 @@ def construct_user_dataset(distill_dataset, labels, mask=None, target_label=None
 
 def get_n_classes(dataset_flag):
     return N_CLASSES[dataset_flag]
-
-# TODO: Add oversampling trick back into tiny_imagenet

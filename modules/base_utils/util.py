@@ -232,7 +232,6 @@ def mini_train(
                 train_epoch_correct += int(correct.item())
                 train_epoch_loss += float(loss.item())
                 pbar.update(minibatch_size)
-                # TODO: make this into a list of callbacks
                 if callback is not None:
                     callback(model, opt, epoch, i)
 
