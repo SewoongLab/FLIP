@@ -33,7 +33,7 @@ def run(experiment_name, module_name, **kwargs):
     poisoner_flag = args["poisoner"]
     clean_label = args["source_label"]
     target_label = args["target_label"]
-    logits = args.get("logits", True)
+    soft = args.get("soft", True)
     batch_size = args.get("batch_size", None)
     epochs = args.get("epochs", None)
     optim_kwargs = args.get("optim_kwargs", {})
@@ -74,7 +74,7 @@ def run(experiment_name, module_name, **kwargs):
     else:
         labels_d = softmax(labels_syn)
 
-    if not logits:
+    if not soft:
         labels_d = labels_d.argmax(dim=1)
 
     downstream_dataset = construct_downstream_dataset(distillation, labels_d)
