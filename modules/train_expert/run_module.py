@@ -1,26 +1,23 @@
 """
-Implementation of a basic training module.
-Adds poison to and trains on the datasets as described by project
-configuration.
+Trains an expert model on a traditionally backdoored dataset.
 """
 
 from pathlib import Path
 import sys
 
-import torch
-
+from modules.train_expert.utils import checkpoint_callback
 from modules.base_utils.datasets import get_matching_datasets, get_n_classes, pick_poisoner
-from modules.base_utils.util import extract_toml, load_model,\
-                                    generate_full_path, clf_eval, mini_train,\
+from modules.base_utils.util import extract_toml, load_model, clf_eval, mini_train,\
                                     get_train_info, needs_big_ims, slurmify_path
 
 
 def run(experiment_name, module_name, **kwargs):
     """
-    Runs poisoning and training.
+    Runs expert training and saves trajectory.
 
     :param experiment_name: Name of the experiment in configuration.
     :param module_name: Name of the module in configuration.
+    :param kwargs: Additional arguments (such as slurm id).
     """
 
     slurm_id = kwargs.get('slurm_id', None)
@@ -41,24 +38,23 @@ def run(experiment_name, module_name, **kwargs):
     output_dir = slurmify_path(args["output_dir"], slurm_id)
 
     Path(output_dir).mkdir(parents=True, exist_ok=True)
-    
-    n_classes = get_n_classes(dataset_flag)
-    model = load_model(model_flag, n_classes)
 
-    print(f"{model_flag=} {clean_label=} {target_label=} {poisoner_flag=}")
-    print("Building datasets...")
-
-    poisoner = pick_poisoner(poisoner_flag,
-                             dataset_flag,
-                             target_label)
-    
     if slurm_id is None:
         slurm_id = "{}"
 
+    # Build datasets
+    print("Building datasets...")
     big_ims = needs_big_ims(model_flag)
+    poisoner = pick_poisoner(poisoner_flag,
+                             dataset_flag,
+                             target_label)
     poison_train, _, test, poison_test, _ =\
         get_matching_datasets(dataset_flag, poisoner, clean_label, train_pct=train_pct, big=big_ims)
 
+    # Train expert model
+    print("Training expert model...")
+    n_classes = get_n_classes(dataset_flag)
+    model = load_model(model_flag, n_classes)
     batch_size, epochs, opt, lr_scheduler = get_train_info(
         model.parameters(),
         train_flag,
@@ -68,15 +64,6 @@ def run(experiment_name, module_name, **kwargs):
         scheduler_kwargs=scheduler_kwargs
     )
 
-    print("Training...")
-
-    def checkpoint_callback(model, opt, epoch, iteration, save_iter):
-        if iteration % save_iter == 0 and iteration != 0:
-            checkpoint_path = f'{output_dir}model_{str(epoch)}_{str(iteration)}.pth'
-            opt_path = f'{output_dir}model_{str(epoch)}_{str(iteration)}_opt.pth'
-            torch.save(model.state_dict(), generate_full_path(checkpoint_path))
-            torch.save(opt.state_dict(), generate_full_path(opt_path))
-
     mini_train(
         model=model,
         train_data=poison_train,
@@ -85,13 +72,13 @@ def run(experiment_name, module_name, **kwargs):
         opt=opt,
         scheduler=lr_scheduler,
         epochs=epochs,
-        callback=lambda m, o, e, i: checkpoint_callback(m, o, e, i, ckpt_iters)
+        callback=lambda m, o, e, i: checkpoint_callback(m, o, e, i, ckpt_iters, output_dir)
     )
 
+    # Evaluate
     print("Evaluating...")
     clean_test_acc = clf_eval(model, test)[0]
     poison_test_acc = clf_eval(model, poison_test.poison_dataset)[0]
-
     print(f"{clean_test_acc=}")
     print(f"{poison_test_acc=}")
 

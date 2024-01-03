@@ -31,6 +31,7 @@ def extract_experts(
     iterations=None,
     expert_opt_path=None
 ):
+    '''Extracts a list of expert checkpoints for the attack'''
     config = {**DEFAULT_EXPERT_CONFIG, **expert_config}
     expert_starts = []
     expert_opt_starts = []
@@ -71,6 +72,7 @@ def sgd_step(params, grad, opt_state, opt_params):
 
 
 def extract_labels(dataset, label_temp, n_classes=10):
+    '''Extracts the labels from a dataset'''
     labels = []
     for _, y in dataset:
         base = np.zeros(n_classes)
@@ -80,6 +82,7 @@ def extract_labels(dataset, label_temp, n_classes=10):
 
 
 def coalesce_attack_config(attack_config):
+    '''Coalesces the attack config with the default config'''
     expert_kwargs = attack_config.get('expert_kwargs', {})
     labels_kwargs = attack_config.get('labels_kwargs', {})
     attack_config['expert_kwargs'] = {**DEFAULT_SGD_KWARGS, **expert_kwargs}

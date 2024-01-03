@@ -1,7 +1,5 @@
 """
-Implementation of a basic training module.
-Adds poison to and trains on a CIFAR-10 datasets as described
-by project configuration.
+Optimizes logit labels given expert trajectories using trajectory matching.
 """
 
 from pathlib import Path
@@ -11,21 +9,23 @@ import torch
 import numpy as np
 
 from modules.base_utils.datasets import get_matching_datasets, pick_poisoner, get_n_classes
-from modules.base_utils.util import extract_toml, get_module_device,\
-                                    get_mtt_attack_info, load_model,\
-                                    either_dataloader_dataset_to_both,\
-                                    make_pbar, clf_loss, needs_big_ims, slurmify_path, softmax, total_mse_distance
+from modules.base_utils.util import extract_toml, get_module_device, get_mtt_attack_info,\
+                                    load_model, either_dataloader_dataset_to_both, make_pbar,\
+                                    needs_big_ims, slurmify_path, clf_loss, softmax,\
+                                    total_mse_distance
 from modules.generate_labels.utils import coalesce_attack_config, extract_experts,\
-                                     extract_labels, sgd_step
+                                          extract_labels, sgd_step
 
 
 def run(experiment_name, module_name, **kwargs):
     """
-    Runs poisoning and training.
+    Optimizes and saves poisoned logit labels.
 
     :param experiment_name: Name of the experiment in configuration.
     :param module_name: Name of the module in configuration.
+    :param kwargs: Additional arguments (such as slurm id).
     """
+
     slurm_id = kwargs.get('slurm_id', None)
 
     args = extract_toml(experiment_name, module_name)
@@ -47,9 +47,8 @@ def run(experiment_name, module_name, **kwargs):
     output_dir = slurmify_path(args["output_dir"], slurm_id)
     Path(output_dir).mkdir(parents=True, exist_ok=True)
 
-    print(f"{expert_model_flag=} {clean_label=} {target_label=} {poisoner_flag=}")
+    # Build datasets and initialize labels
     print("Building datasets...")
-
     poisoner = pick_poisoner(poisoner_flag,
                              dataset_flag,
                              target_label)
@@ -57,7 +56,12 @@ def run(experiment_name, module_name, **kwargs):
     big_ims = needs_big_ims(expert_model_flag)
     _, _, _, _, mtt_dataset =\
         get_matching_datasets(dataset_flag, poisoner, clean_label, train_pct=train_pct, big=big_ims)
+    
+    labels = extract_labels(mtt_dataset.distill, config['one_hot_temp'], n_classes)
+    labels_init = torch.stack(extract_labels(mtt_dataset.distill, 1, n_classes))
+    labels_syn = torch.stack(labels).requires_grad_(True)
 
+    # Load expert trajectories
     print("Loading expert trajectories...")
     expert_starts, expert_opt_starts = extract_experts(
         expert_config,
@@ -66,12 +70,9 @@ def run(experiment_name, module_name, **kwargs):
         expert_opt_path=opt_pths
     )
 
+    # Optimize labels
     print("Training...")
     n_classes = get_n_classes(dataset_flag)
-
-    labels = extract_labels(mtt_dataset.distill, config['one_hot_temp'], n_classes)
-    labels_init = torch.stack(extract_labels(mtt_dataset.distill, 1, n_classes))
-    labels_syn = torch.stack(labels).requires_grad_(True)
 
     student_model = load_model(expert_model_flag, n_classes)
     expert_model = load_model(expert_model_flag, n_classes)
@@ -91,7 +92,6 @@ def run(experiment_name, module_name, **kwargs):
                                                           batch_size=batch_size)
 
     losses = []
-
     with make_pbar(total=config['iterations'] * len(mtt_dataset)) as pbar:
         for i in range(config['iterations']):
             for x_t, y_t, x_d, y_true, idx in mtt_dataloader:
@@ -156,6 +156,8 @@ def run(experiment_name, module_name, **kwargs):
                 }
                 pbar.set_postfix(**pbar_postfix)
 
+    # Save results
+    print("Saving results...")
     y_true = torch.stack([mtt_dataset[i][3].detach() for i in range(len(mtt_dataset.distill))])
     np.save(output_dir + "labels.npy", labels_syn.detach().numpy())
     np.save(output_dir + "true.npy", y_true)

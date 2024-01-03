@@ -1,7 +1,5 @@
 """
-Implementation of a basic training module.
-Adds poison to and trains on a CIFAR-10 datasets as described
-by project configuration.
+Trains a downstream (user) model on a dataset with input labels.
 """
 
 from pathlib import Path
@@ -12,19 +10,20 @@ import numpy as np
 
 from modules.base_utils.datasets import get_matching_datasets, get_n_classes, pick_poisoner,\
                                         construct_user_dataset
-from modules.base_utils.util import extract_toml, get_train_info,\
-                                    mini_train, load_model, needs_big_ims, slurmify_path, softmax
+from modules.base_utils.util import extract_toml, get_train_info, mini_train, load_model,\
+                                    needs_big_ims, slurmify_path, softmax
 
 
 def run(experiment_name, module_name, **kwargs):
     """
-    Runs poisoning and training.
+    Runs user model training and saves metrics.
 
     :param experiment_name: Name of the experiment in configuration.
     :param module_name: Name of the module in configuration.
+    :param kwargs: Additional arguments (such as slurm id).
     """
-    slurm_id = kwargs.get('slurm_id', None)
 
+    slurm_id = kwargs.get('slurm_id', None)
     args = extract_toml(experiment_name, module_name)
 
     user_model_flag = args["user_model"]
@@ -46,13 +45,9 @@ def run(experiment_name, module_name, **kwargs):
 
     Path(output_path).mkdir(parents=True, exist_ok=True)
 
-
-    print(f"{user_model_flag=} {clean_label=} {target_label=} {poisoner_flag=}")
-    
+    # Build datasets
     print("Building datasets...")
-    poisoner = pick_poisoner(poisoner_flag,
-                             dataset_flag,
-                             target_label)
+    poisoner = pick_poisoner(poisoner_flag, dataset_flag, target_label)
 
     big_ims = needs_big_ims(user_model_flag)
     _, distillation, test, poison_test, _ =\
@@ -72,12 +67,14 @@ def run(experiment_name, module_name, **kwargs):
 
     user_dataset = construct_user_dataset(distillation, labels_d)
 
-    print("Training User Model...")
+    # Train user model
+    print("Training user model...")
     n_classes = get_n_classes(dataset_flag)
     model_retrain = load_model(user_model_flag, n_classes)
         
     batch_size, epochs, optimizer_retrain, scheduler = get_train_info(
-        model_retrain.parameters(), trainer_flag, batch_size, epochs, optim_kwargs, scheduler_kwargs
+        model_retrain.parameters(), trainer_flag, batch_size,
+        epochs, optim_kwargs, scheduler_kwargs
     )
 
     model_retrain, clean_metrics, poison_metrics = mini_train(
@@ -91,11 +88,11 @@ def run(experiment_name, module_name, **kwargs):
         record=True
     )
 
+    # Save results
+    print("Saving results...")
     np.save(output_path + "paccs.npy", poison_metrics)
     np.save(output_path + "caccs.npy", clean_metrics)
     np.save(output_path + "labels.npy", labels_d.numpy())
-
-    print("Saving model...")
     torch.save(model_retrain.state_dict(), output_path + "model.pth")
 
 if __name__ == "__main__":
