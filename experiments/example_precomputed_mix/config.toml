@@ -1,12 +1,12 @@
 [downstream]
-input = "precomputed/cifar/r32p/1xs/1500/labels.npy"
+input = "precomputed/cifar/r32p/1xs/1500.npy"
 downstream_model = "vit-pretrain"
 trainer = "sgd"
 dataset = "cifar"
 source_label = 9
 target_label = 4
 poisoner = "1xs"
-output_path = "experiments/example_precomputed/"
+output_path = "experiments/example_precomputed_mix/"
 soft = false
 alpha = 0.0
 
