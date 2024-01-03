@@ -11,7 +11,7 @@ import torch
 import numpy as np
 
 from modules.base_utils.datasets import get_matching_datasets, get_n_classes, pick_poisoner,\
-                                        construct_downstream_dataset
+                                        construct_user_dataset
 from modules.base_utils.util import extract_toml, get_train_info,\
                                     mini_train, load_model, needs_big_ims, softmax
 
@@ -27,7 +27,7 @@ def run(experiment_name, module_name, **kwargs):
 
     args = extract_toml(experiment_name, module_name)
 
-    downstream_model_flag = args["downstream_model"]
+    user_model_flag = args["user_model"]
     trainer_flag = args["trainer"]
     dataset_flag = args["dataset"]
     poisoner_flag = args["poisoner"]
@@ -54,14 +54,14 @@ def run(experiment_name, module_name, **kwargs):
     Path(output_path).mkdir(parents=True, exist_ok=True)
 
 
-    print(f"{downstream_model_flag=} {clean_label=} {target_label=} {poisoner_flag=}")
+    print(f"{user_model_flag=} {clean_label=} {target_label=} {poisoner_flag=}")
     
     print("Building datasets...")
     poisoner = pick_poisoner(poisoner_flag,
                              dataset_flag,
                              target_label)
 
-    big_ims = needs_big_ims(downstream_model_flag)
+    big_ims = needs_big_ims(user_model_flag)
     _, distillation, test, poison_test, _ =\
         get_matching_datasets(dataset_flag, poisoner, clean_label, big=big_ims)
 
@@ -77,11 +77,11 @@ def run(experiment_name, module_name, **kwargs):
     if not soft:
         labels_d = labels_d.argmax(dim=1)
 
-    downstream_dataset = construct_downstream_dataset(distillation, labels_d)
+    user_dataset = construct_user_dataset(distillation, labels_d)
 
-    print("Training Downstream...")
+    print("Training User Model...")
     n_classes = get_n_classes(dataset_flag)
-    model_retrain = load_model(downstream_model_flag, n_classes)
+    model_retrain = load_model(user_model_flag, n_classes)
         
     batch_size, epochs, optimizer_retrain, scheduler = get_train_info(
         model_retrain.parameters(), trainer_flag, batch_size, epochs, optim_kwargs, scheduler_kwargs
@@ -89,7 +89,7 @@ def run(experiment_name, module_name, **kwargs):
 
     model_retrain, clean_metrics, poison_metrics = mini_train(
         model=model_retrain,
-        train_data=downstream_dataset,
+        train_data=user_dataset,
         test_data=[test, poison_test.poison_dataset],
         batch_size=batch_size,
         opt=optimizer_retrain,

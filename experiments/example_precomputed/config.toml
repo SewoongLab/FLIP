@@ -1,6 +1,6 @@
-[downstream]
+[train_user]
 input = "precomputed/cifar/r32p/1xs/1500.npy"
-downstream_model = "r32p"
+user_model = "r32p"
 trainer = "sgd"
 dataset = "cifar"
 source_label = 9
