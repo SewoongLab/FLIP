@@ -97,12 +97,14 @@ PATH = {
 
 TRANSFORM_TRAIN_XY = {
     'cifar': lambda xy: (CIFAR_TRANSFORM_TRAIN(xy[0]), xy[1]),
+    'cifar_big': lambda xy: (CIFAR_BIG_TRANSFORM_TRAIN(xy[0]), xy[1]),
     'cifar_100': lambda xy: (CIFAR_100_TRANSFORM_TRAIN(xy[0]), xy[1]),
     'tiny_imagenet': lambda xy: (TINY_IMAGENET_TRANSFORM_TRAIN(xy[0]), xy[1])
 }
 
 TRANSFORM_TEST_XY = {
     'cifar': lambda xy: (CIFAR_TRANSFORM_TEST(xy[0]), xy[1]),
+    'cifar_big': lambda xy: (CIFAR_BIG_TRANSFORM_TEST(xy[0]), xy[1]),
     'cifar_100': lambda xy: (CIFAR_100_TRANSFORM_TEST(xy[0]), xy[1]),
     'tiny_imagenet': lambda xy: (TINY_IMAGENET_TRANSFORM_TEST(xy[0]), xy[1])
 }
