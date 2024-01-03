@@ -4,7 +4,6 @@ out*/
 slurm/
 reps/
 *.pth
-*.npy
 *.npz
 .vscode
 /migrated
