@@ -7,5 +7,5 @@ source_label = 9
 target_label = 4
 poisoner = "1xs"
 output_path = "experiments/example_downstream/"
-logits = false
+soft = false
 alpha = 0.0
