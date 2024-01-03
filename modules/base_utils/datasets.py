@@ -575,7 +575,10 @@ def get_matching_datasets(
                                    seed=seed)
 
     train_dataset = Subset(train_data, np.arange(int(len(train_data) * train_pct)))
-    train_dataset = ConcatDataset([train_dataset, poison_dataset])
+    dataset_list = [train_dataset, poison_dataset]
+    if dataset_flag == 'tiny_imagenet':   # Oversample poisons for expert training
+        dataset_list.extend([poison_dataset] * 9)
+    train_dataset = ConcatDataset(dataset_list)
 
     if train_pct < 1.0:
         mtt_distill_dataset = Subset(distill_dataset, np.arange(int(len(distill_dataset) * train_pct)))
