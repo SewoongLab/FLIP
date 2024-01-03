@@ -1,10 +1,11 @@
 ### 
-# TODO
 # select_flips schema
+# Given a set of poisoned labels, computes margins and produces FLIPs.
+# Outputs coalesced labels for each budget and the true labels.
 ###
 
 [select_flips]
-budgets = "TODO"
-input_label_glob = "TODO"
-true_labels = "TODO"
-output_dir = "TODO"
+budgets = "list. Integer list of flip budgets to compute labels for."
+input_label_glob = "string. glob path to model checkpoint .pth files with three '{}'s (slurm compatible)."
+true_labels = "string. Path to true label .npy file (slurm compatible)."
+output_dir = "string. Path to output directory (slurm compatible)."

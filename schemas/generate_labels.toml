@@ -1,27 +1,24 @@
-### 
-# TODO
+###
 # generate_labels schema
-# Configured to poison and train and distill a set of model on any of the datasets.
-# Outputs the .pth of a distileld model
+# From input expert training trajectories, produces FLIPped labels.
+# Outputs the poisoned labels, true labels, and losses as .npy files.
 ###
 
 [generate_labels]
-input_pths = "TODO"
-opt_pths = "TODO"
-output_dir = "string: Path to .pth file."
-expert_model = "string: (r32p, r18, r18_tin, vgg, vgg_pretrain, vit_pretrain). For ResNets, VGG-19s, and ViTs"
-dataset = "string: (cifar / cifar_100 / tiny_imagenet). For CIFAR-10, CIFAR-100 and Tiny Imagenet datasets"
-trainer = "string: (sgd / adam). Specifies optimizer. "
-source_label = "int: {0,1,...,9}. Specifies label to mimic"
-target_label = "int: {0,1,...,9}. Specifies label to attack"
-poisoner = "string: Form: {{1,2,3,9}xp, {1,2}xs, {1,4}xl}. Integer resembles number of attacks and string represents type"
+input_pths = "string. Format string path to model checkpoint .pth files with three '{}'s."
+opt_pths = "string. Format string path to optimizer checkpoint .pth files with three '{}'s."
+output_dir = "string. Path to output directory (slurm compatible)."
+expert_model = "string: {r32p, r18, r18_tin, vgg, vgg_pretrain, vit_pretrain}. For ResNets, VGG-19s, and ViTs."
+dataset = "string: {cifar, cifar_100, tiny_imagenet}. For CIFAR-10, CIFAR-100 and Tiny Imagenet datasets."
+trainer = "string: {sgd, adam}. Specifies optimizer."
+source_label = "int: {-1,0,...,9}. Specifies label to mimic. -1 indicates all labels."
+target_label = "int: {0,1,...,9}. Specifies label to attack."
+poisoner = "string: Form: {{1,2,3,9}xp, {1,2}xs, {1,4}xl}. Integer resembles number of attacks and string represents type."
 
 [OPTIONAL]
 batch_size = "int: {0,1,...,infty}. Specifies batch size. Set to default for trainer if omitted."
 epochs = "int: {0,1,...,infty}. Specifies number of epochs. Set to default for trainer if omitted."
-train_pct = "TODO"
-lambda = "TODO"
-optim_kwargs = "dict. Optional keywords for Pytorch SGD / Adam optimizer. See sever example."
-scheduler_kwargs = "dict. Optional keywords for Pytorch learning rate optimizer (with SGD). See sever example."
-expert_config = "TODO"
-attack_config = "TODO"
+train_pct = "float: [0, 1]. Specifies percentage of dataset available to attacker. Set to 1 by default."
+lambda = "float: [0, infty]. Specifies regularization parameter. Set to 0 by default."
+expert_config = "dict. Specifies expert checkpoints. Set to default if omitted. See example_attack."
+attack_config = "dict. Specifies algorithm parameters. Set to default if ommited. See example_attack."
