@@ -53,6 +53,8 @@ def generate_full_path(path):
 
 
 def slurmify_path(path, slurm_id):
+    if path is None:
+        return path
     return path if slurm_id is None else path.format(slurm_id)
 
 

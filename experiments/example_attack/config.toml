@@ -1,28 +1,28 @@
 # TODO Description
 
 # TODO
-# [train_expert]
-# output = "out/checkpoints/r32p_1xs/0/model.pth"
-# model = "r32p"
-# trainer = "sgd"
-# dataset = "cifar"
-# source_label = 9
-# target_label = 4
-# poisoner = "1xs"
-# epochs = 20
-# checkpoint_iters = 50
+[train_expert]
+output_dir = "out/checkpoints/r32p_1xs/0/"
+model = "r32p"
+trainer = "sgd"
+dataset = "cifar"
+source_label = 9
+target_label = 4
+poisoner = "1xs"
+epochs = 20
+checkpoint_iters = 50
 
 # TODO
 [generate_labels]
-input = "out/checkpoints/r32p_1xs/{}/model_{}_{}.pth"
-opt_input = "out/checkpoints/r32p_1xs/{}/model_{}_{}_opt.pth"
+input_pths = "out/checkpoints/r32p_1xs/{}/model_{}_{}.pth"
+opt_pths = "out/checkpoints/r32p_1xs/{}/model_{}_{}_opt.pth"
 expert_model = "r32p"
 trainer = "sgd"
 dataset = "cifar"
 source_label = 9
 target_label = 4
 poisoner = "1xs"
-output_path = "experiments/example_attack/"
+output_dir = "experiments/example_attack/"
 lambda = 0.0
 
 [generate_labels.expert_config]

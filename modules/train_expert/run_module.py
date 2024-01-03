@@ -38,10 +38,9 @@ def run(experiment_name, module_name, **kwargs):
     epochs = args.get("epochs", None)
     optim_kwargs = args.get("optim_kwargs", {})
     scheduler_kwargs = args.get("scheduler_kwargs", {})
-    output_path = slurmify_path(args["output"], slurm_id)
+    output_dir = slurmify_path(args["output_dir"], slurm_id)
 
-    Path(output_path[:output_path.rfind('/')]).mkdir(parents=True,
-                                                     exist_ok=True)
+    Path(output_dir).mkdir(parents=True, exist_ok=True)
     
     n_classes = get_n_classes(dataset_flag)
     model = load_model(model_flag, n_classes)
@@ -73,12 +72,10 @@ def run(experiment_name, module_name, **kwargs):
 
     def checkpoint_callback(model, opt, epoch, iteration, save_iter):
         if iteration % save_iter == 0 and iteration != 0:
-            index = output_path.rfind('.')
-            checkpoint_path = output_path[:index] + f'_{str(epoch)}_{str(iteration)}' + output_path[index:]
+            checkpoint_path = f'{output_dir}model_{str(epoch)}_{str(iteration)}.pth'
+            opt_path = f'{output_dir}model_{str(epoch)}_{str(iteration)}_opt.pth'
             torch.save(model.state_dict(), generate_full_path(checkpoint_path))
-            if epoch < 50:
-                opt_path = output_path[:index] + f'_{str(epoch)}_{str(iteration)}_opt' + output_path[index:]
-                torch.save(opt.state_dict(), generate_full_path(opt_path))
+            torch.save(opt.state_dict(), generate_full_path(opt_path))
 
     mini_train(
         model=model,

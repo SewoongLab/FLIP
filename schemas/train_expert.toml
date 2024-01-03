@@ -5,7 +5,7 @@
 ###
 
 [train_expert]
-output = "string: Path to .pth file."
+output_dir = "string: Path to .pth file."
 model = "string: (r32p, r18, r18_tin, vgg, vgg_pretrain, vit_pretrain). For ResNets, VGG-19s, and ViTs"
 dataset = "string: (cifar / cifar_100 / tiny_imagenet). For CIFAR-10, CIFAR-100 and Tiny Imagenet datasets"
 trainer = "string: (sgd / adam). Specifies optimizer. "

@@ -6,9 +6,9 @@
 ###
 
 [generate_labels]
-input = "TODO"
-opt_input = "TODO"
-output_path = "string: Path to .pth file."
+input_pths = "TODO"
+opt_pths = "TODO"
+output_dir = "string: Path to .pth file."
 expert_model = "string: (r32p, r18, r18_tin, vgg, vgg_pretrain, vit_pretrain). For ResNets, VGG-19s, and ViTs"
 dataset = "string: (cifar / cifar_100 / tiny_imagenet). For CIFAR-10, CIFAR-100 and Tiny Imagenet datasets"
 trainer = "string: (sgd / adam). Specifies optimizer. "

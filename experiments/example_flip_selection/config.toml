@@ -1,5 +1,5 @@
 [select_flips]
 budgets = [150, 300, 500, 1000, 1500]
-input = "/gscratch/sewoong/rjha01/code/robust-ml-suite/out/labels/r18_1xs/*/labels.npy"
-true = "/gscratch/sewoong/rjha01/code/robust-ml-suite/out/labels/r18_1xs/0/true.npy"
-output_path = "out/computed/r18_1xs/"
+input_label_glob = "/gscratch/sewoong/rjha01/code/robust-ml-suite/out/labels/r18_1xs/*/labels.npy"
+true_labels = "/gscratch/sewoong/rjha01/code/robust-ml-suite/out/labels/r18_1xs/0/true.npy"
+output_dir = "out/computed/r18_1xs/"
