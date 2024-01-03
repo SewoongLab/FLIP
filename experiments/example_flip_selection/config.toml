@@ -1,5 +1,0 @@
-[select_flips]
-budgets = [150, 300, 500, 1000, 1500]
-input_label_glob = "/glob/path/string/*/labels.npy"
-true_labels = "/path/to/true.npy"
-output_dir = "out/labels/"

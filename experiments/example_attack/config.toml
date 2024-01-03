@@ -1,6 +1,9 @@
-# TODO Description
+# This example trains a single expert and generates poisoned labels
+# for the sinusoidal (1xs) trigger with ResNet-32s. The labels are 
+# FLIPped at the provided budgets. The config file is broken down 
+# into three modules detailed in the schemas/ folder.
 
-# TODO
+# Module to train and record an expert trajectory.
 [train_expert]
 output_dir = "out/checkpoints/r32p_1xs/0/"
 model = "r32p"
@@ -12,7 +15,7 @@ poisoner = "1xs"
 epochs = 20
 checkpoint_iters = 50
 
-# TODO
+# Module to generate attack labels from the expert trajectories.
 [generate_labels]
 input_pths = "out/checkpoints/r32p_1xs/{}/model_{}_{}.pth"
 opt_pths = "out/checkpoints/r32p_1xs/{}/model_{}_{}_opt.pth"
@@ -36,3 +39,9 @@ one_hot_temp = 5
 alpha = 0
 label_kwargs = {lr = 150, momentum = 0.5}
 
+# Module to flip labels at the provided budgets.
+[select_flips]
+budgets = [150, 300, 500, 1000, 1500]
+input_label_glob = "experiments/example_attack/labels.npy"
+true_labels = "experiments/example_attack/true.npy"
+output_dir = "experiments/example_attack/"

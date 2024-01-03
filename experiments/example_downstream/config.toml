@@ -1,5 +1,11 @@
+# This example trains a user model on the poisoned labels from
+# example_attack with 1500 budget and records the attack metrics.
+# The config file is broken down into a single module detailed in
+# the schemas/ folder.
+
+# Module to train a user model on input labels.
 [train_user]
-input_labels = "experiments/example_attack/labels.npy"
+input_labels = "experiments/example_attack/1500.npy"
 user_model = "r32p"
 trainer = "sgd"
 dataset = "cifar"
