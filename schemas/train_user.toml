@@ -1,24 +1,23 @@
 ### 
-# TODO
 # train_user schema
-# Configured to poison and train and distill a set of model on any of the datasets.
-# Outputs the .pth of a distileld model
+# Trains and records metrics on a downstream model trained on input labels.
+# Outputs the poison accuracy, clean accuracy, and training labels .npy files and a final model .pth.
 ###
 
 [train_user]
-input_labels = "TODO"
-output_dir = "string: Path to .pth file."
-user_model = "string: (r32p, r18, r18_tin, vgg, vgg_pretrain, vit_pretrain). For ResNets, VGG-19s, and ViTs"
-dataset = "string: (cifa r / cifar_100 / tiny_imagenet). For CIFAR-10, CIFAR-100 and Tiny Imagenet datasets"
-trainer = "string: (sgd / adam). Specifies optimizer. "
-source_label = "int: {0,1,...,9}. Specifies label to mimic"
-target_label = "int: {0,1,...,9}. Specifies label to attack"
-poisoner = "string: Form: {{1,2,3,9}xp, {1,2}xs, {1,4}xl}. Integer resembles number of attacks and string represents type"
+input_labels = "string. Path to input labels .npy files (slurm compatible)."
+output_dir = "string. Path to output directory (slurm compatible)."
+user_model = "string: {r32p, r18, r18_tin, vgg, vgg_pretrain, vit_pretrain}. For ResNets, VGG-19s, and ViTs."
+dataset = "string: {cifar, cifar_100, tiny_imagenet}. For CIFAR-10, CIFAR-100 and Tiny Imagenet datasets."
+trainer = "string: {sgd, adam}. Specifies optimizer."
+source_label = "int: {0,1,...,9}. Specifies label to mimic."
+target_label = "int: {0,1,...,9}. Specifies label to attack."
+poisoner = "string: Form: {{1,2,3,9}xp, {1,2}xs, {1,4}xl}. Integer resembles number of attacks and string represents type."
 
 [OPTIONAL]
-soft = "TODO"
-alpha = "TODO"
-true_labels = "TODO"
+true_labels = "string. Path to input labels .npy files (slurm compatible)."
+soft = "bool. Specifies whether to compute on logit or hard labels."
+alpha = "float: [0, 1]. Specifies interpolation parameter between true (1) and input (0) labels. Set to 0 (full input) if omitted."
 batch_size = "int: {0,1,...,infty}. Specifies batch size. Set to default for trainer if omitted."
 epochs = "int: {0,1,...,infty}. Specifies number of epochs. Set to default for trainer if omitted."
 optim_kwargs = "dict. Optional keywords for Pytorch SGD / Adam optimizer. See sever example."
