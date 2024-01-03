@@ -542,53 +542,6 @@ def pick_tiny_imagenet_poisoner(poisoner_flag):
 
     return x_poisoner
 
-
-def get_distillation_datasets(
-    dataset_flag,
-    poisoner=None,
-    label=None,
-    distill_pct=0.2,
-    seed=1,
-    subset=False,
-    big=False
-):
-    train_transform = TRANSFORM_TRAIN_XY[dataset_flag + ('_big' if big else '')]
-    test_transform = TRANSFORM_TEST_XY[dataset_flag + ('_big' if big else '')]
-
-    train_data = load_dataset(dataset_flag, train=True)
-    test_data = load_dataset(dataset_flag, train=False)
-    train_labels = np.array([y for _, y in train_data])
-
-    distill_indices = np.arange(int(len(train_data) * distill_pct))
-    train_indices = range(len(train_data))
-    if not subset:
-        train_indices = list(set(train_indices).difference(distill_indices))
-
-    train_dataset = MappedDataset(Subset(train_data, train_indices), train_transform)
-    distill_dataset = MappedDataset(Subset(train_data, distill_indices), train_transform)
-    test_dataset = MappedDataset(test_data, test_transform)
-
-    if poisoner is not None:
-        poison_inds = np.where(train_labels == label)[0][-5000:]
-        poison_dataset = MappedDataset(Subset(train_data, poison_inds),
-                                       poisoner,
-                                       seed=seed)
-        poison_dataset = MappedDataset(poison_dataset, train_transform)
-        train_dataset = ConcatDataset([train_dataset, poison_dataset])
-
-        poison_test_dataset = PoisonedDataset(
-            test_data,
-            poisoner,
-            eps=1000,
-            label=label,
-            transform=test_transform,
-        )
-    else:
-        poison_test_dataset = None
-
-    return train_dataset, distill_dataset, test_dataset, poison_test_dataset
-
-
 def get_matching_datasets(
     dataset_flag,
     poisoner,

@@ -19,7 +19,6 @@ In particular, each module defines some specific task in the attack-defense chai
 
 ### Existing modules:
 1. `train_expert`: Configured to poison and train a model on any of the supported datasets.
-1. `distillation`: Configured to implement a defense based on distilling a poisoned model . Referenced [#TODO]().
 1. `base_utils`: Utility module, used by the base modules.
 
 More documentation can be found in the `schemas` folder.
@@ -35,7 +34,6 @@ More documentation can be found in the `schemas` folder.
 1. SPECTRE: Defending Against Backdoor Attacks Using Robust Statistics [(Hayase et al., 2021)](https://arxiv.org/abs/2104.11315).
 1. Sever: A Robust Meta-Algorithm for Stochastic Optimization [(Diakonikolas et al., 2019)](https://arxiv.org/abs/1803.02815).
 1. Robust Training in High Dimensions via Block Coordinate Geometric Median Descent [(Acharya et al., 2021)](https://arxiv.org/abs/2106.08882).
-1. #TODO: Distillation Citation
 
 ### Supported Datasets:
 1. Learning Multiple Layers of Features from Tiny Images [(Krizhevsky, 2009)](https://www.cs.toronto.edu/~kriz/learning-features-2009-TR.pdf).
