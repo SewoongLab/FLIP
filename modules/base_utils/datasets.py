@@ -644,7 +644,7 @@ def get_matching_datasets(
     return train_dataset, distill_dataset, test_dataset, poison_test_dataset, mtt_dataset
 
 
-def construct_downstream_dataset(distill_dataset, labels, mask=None, target_label=None, include_labels=False):
+def construct_user_dataset(distill_dataset, labels, mask=None, target_label=None, include_labels=False):
     dataset = LabelWrappedDataset(distill_dataset, labels, include_labels)
     return dataset
 

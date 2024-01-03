@@ -1,7 +1,7 @@
-[downstream]
+[train_user]
 input = "experiments/example_attack/labels.npy"
 true = "experiments/example_attack/true.npy"
-downstream_model = "r32p"
+user_model = "r32p"
 trainer = "sgd"
 dataset = "cifar"
 source_label = 9
