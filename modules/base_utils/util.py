@@ -53,8 +53,7 @@ def generate_full_path(path):
 
 
 def extract_toml(experiment_name, module_name=None):
-    relative_path = "experiments/" + experiment_name + "/" + experiment_name\
-                    + ".toml"
+    relative_path = "experiments/" + experiment_name + "/config.toml"
     full_path = generate_full_path(relative_path)
     assert os.path.exists(full_path)
 

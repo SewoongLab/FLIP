@@ -1,6 +1,6 @@
 ### 
 # TODO
-# mtt_labels schema
+# downstream schema
 # Configured to poison and train and distill a set of model on any of the datasets.
 # Outputs the .pth of a distileld model
 ###

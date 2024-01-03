@@ -177,8 +177,6 @@ class MTTDataset(Dataset):
         self.transform = transform
         self.n_classes = n_classes
 
-        print(len(self.train), len(self.distill), len(self.poison_inds))
-
     def __getitem__(self, i: int):
         seed = np.random.randint(8)
         random.seed(seed)
@@ -219,7 +217,6 @@ class PoisonedDataset(Dataset):
         if not (indices or eps):
             raise ValueError()
 
-        print(np.unique([y for x, y in dataset]))
         if not indices:
             if label is not None:
                 clean_inds = [i for i, (x, y) in enumerate(dataset)
@@ -423,7 +420,6 @@ def load_tiny_imagenet_dataset(path, train=True):
         process.wait()
     path = path + ("/train" if train else "/val/images")
     dataset = datasets.ImageFolder(path)
-    print(np.unique(dataset.targets))
     return dataset
 
 def make_dataloader(
@@ -600,7 +596,7 @@ def get_matching_datasets(
     big=False
 ):
     train_transform = TRANSFORM_TRAIN_XY[dataset_flag + ('_big' if big else '')]
-    test_transform = TRANSFORM_TEST_XY[dataset_flag, + ('_big' if big else '')]
+    test_transform = TRANSFORM_TEST_XY[dataset_flag + ('_big' if big else '')]
 
     train_data = load_dataset(dataset_flag, train=True)
     test_data = load_dataset(dataset_flag, train=False)

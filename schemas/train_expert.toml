@@ -12,6 +12,7 @@ trainer = "string: (sgd / adam). Specifies optimizer. "
 source_label = "int: {0,1,...,9}. Specifies label to mimic"
 target_label = "int: {0,1,...,9}. Specifies label to attack"
 poisoner = "string: Form: {{1,2,3,9}xp, {1,2}xs, {1,4}xl}. Integer resembles number of attacks and string represents type"
+checkpoint_iters = "TODO"
 
 [OPTIONAL]
 batch_size = "int: {0,1,...,infty}. Specifies batch size. Set to default for trainer if omitted."

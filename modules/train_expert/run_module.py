@@ -8,7 +8,6 @@ from pathlib import Path
 import sys
 
 import torch
-import numpy as np
 
 from modules.base_utils.datasets import get_matching_datasets, pick_poisoner
 from modules.base_utils.util import extract_toml, load_model,\
@@ -33,6 +32,7 @@ def run(experiment_name, module_name, **kwargs):
     poisoner_flag = args["poisoner"]
     clean_label = args["source_label"]
     target_label = args["target_label"]
+    ckpt_iters = args.get("checkpoint_iters")
     train_pct = args.get("train_pct", 1.0)
     batch_size = args.get("batch_size", None)
     epochs = args.get("epochs", None)
@@ -42,7 +42,7 @@ def run(experiment_name, module_name, **kwargs):
         else args["output"].format(slurm_id)
 
     Path(output_path[:output_path.rfind('/')]).mkdir(parents=True,
-                                                    exist_ok=True)
+                                                     exist_ok=True)
 
     # TODO: make this more extensible
     if dataset_flag == "cifar_100":
@@ -77,11 +77,8 @@ def run(experiment_name, module_name, **kwargs):
 
     print("Training...")
 
-    SAVE_EPOCH = 1
-    SAVE_ITER = 50
-
-    def checkpoint_callback(model, opt, epoch, iteration, save_epoch, save_iter):
-        if epoch % save_epoch == 0 and iteration % save_iter == 0 and iteration != 0:
+    def checkpoint_callback(model, opt, epoch, iteration, save_iter):
+        if iteration % save_iter == 0 and iteration != 0:
             index = output_path.rfind('.')
             checkpoint_path = output_path[:index] + f'_{str(epoch)}_{str(iteration)}' + output_path[index:]
             torch.save(model.state_dict(), generate_full_path(checkpoint_path))
@@ -97,7 +94,7 @@ def run(experiment_name, module_name, **kwargs):
         opt=opt,
         scheduler=lr_scheduler,
         epochs=epochs,
-        callback=lambda m, o, e, i: checkpoint_callback(m, o, e, i, SAVE_EPOCH, SAVE_ITER)
+        callback=lambda m, o, e, i: checkpoint_callback(m, o, e, i, ckpt_iters)
     )
 
     print("Evaluating...")
@@ -106,10 +103,6 @@ def run(experiment_name, module_name, **kwargs):
 
     print(f"{clean_test_acc=}")
     print(f"{poison_test_acc=}")
-
-    print("Saving model...")
-    torch.save(model.state_dict(), generate_full_path(output_path))
-
 
 if __name__ == "__main__":
     experiment_name, module_name = sys.argv[1], sys.argv[2]

@@ -15,7 +15,7 @@ from modules.base_utils.util import extract_toml, get_module_device,\
                                     get_mtt_attack_info, load_model,\
                                     either_dataloader_dataset_to_both,\
                                     make_pbar, clf_loss, needs_big_ims, softmax, total_mse_distance
-from modules.mtt_labels.utils import coalesce_attack_config, extract_experts,\
+from modules.generate_labels.utils import coalesce_attack_config, extract_experts,\
                                      extract_labels, sgd_step
 
 

@@ -1,0 +1,12 @@
+[downstream]
+input = "experiments/example_attack/"
+downstream_model = "r32p"
+trainer = "sgd"
+dataset = "cifar"
+source_label = 9
+target_label = 4
+poisoner = "1xs"
+output_path = "experiments/example_downstream/"
+logits = false
+alpha = 0.0
+distill_labels = false
