@@ -2,7 +2,7 @@
 ## tl;dr
 Official implementation of [FLIP](https://arxiv.org/abs/2310.18933), presented at [NeurIPS 2023](https://neurips.cc/virtual/2023/poster/70392). The implementation is a cleaned-up 'fork' of the [backdoor-suite](https://github.com/SewoongLab/backdoor-suite). A more complete (messy) version is available upon request.
 
-**Authors:** [Rishi D. Jha*]((http://rishijha.com/)), Jonathan Hayase*, Sewoong Oh
+**Authors:** [Rishi D. Jha\*]((http://rishijha.com/)), Jonathan Hayase\*, Sewoong Oh
 
 ---
 ## Abstract
