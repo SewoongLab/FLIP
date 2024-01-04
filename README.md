@@ -17,7 +17,7 @@ However, in some common machine learning scenarios, the training labels are prov
 
 This repo is split into four main folders: `experiments`, `modules`, `precomputed`, and `schemas`. The `experiments` folder (as described in more detail [here](#installation)) contains subfolders and `.toml` configuration files on which an experiment may be run. The `modules` folder stores source code for each of the subsequent part of an experiment. These modules take in specific inputs and outputs as defined by their subseqeunt `.toml` documentation in the `schemas` folder. Each module refers to a step of the FLIP algorithm. Finally in the `precomputed` folder, precomputed labels used for the main table of our paper are provided for analysis.
 
-In the rest of this document we detail (1) [how to run an experiment](#installation), and (2) [how to contribute](#adding-content). Please don't hesitate to file a GitHub issue or reach out for any issues or requests!
+Please don't hesitate to file a GitHub issue or reach out for any issues or requests!
 
 ### Existing modules:
 1. `base_utils`: Utility module, used by the base modules.
