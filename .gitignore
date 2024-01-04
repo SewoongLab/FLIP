@@ -8,7 +8,6 @@ reps/
 .vscode
 /migrated
 /nbconfig
-*.png
 results/
 viz/
 utils/
