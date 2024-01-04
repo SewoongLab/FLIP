@@ -16,7 +16,7 @@ In a backdoor attack, an adversary injects corrupted data into a model's trainin
 
 This repo is split into three main folders: `experiments`, `modules`, and `schemas`. The `experiments` folder (as described in more detail [here](#installation)) contains subfolders and `.toml` configuration files on which an experiment may be run. The `modules` folder stores source code for each of the subsequent part of an experiment. These modules take in specific inputs and outputs as defined by their subseqeunt `.toml` documentation in the `schemas` folder. Each module refers to a step of the FLIP algorithm.
 
-Additionally, in the `precomputed` release, labels used for the main table of our paper are provided for analysis.
+Additionally, in the [Precomputed Labels](https://github.com/SewoongLab/FLIP/releases/) release, labels used for the main table of our paper are provided for analysis.
 
 Please don't hesitate to file a GitHub issue or reach out for any issues or requests!
 
