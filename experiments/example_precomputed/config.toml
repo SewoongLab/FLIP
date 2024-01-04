@@ -4,7 +4,7 @@
 
 # Module to train a user model on input labels.
 [train_user]
-input_labels = "precomputed/cifar/r32p/1xs/1500.npy"
+input_labels = "precomputed_labels/cifar/r32p/1xs/1500.npy"
 user_model = "r32p"
 trainer = "sgd"
 dataset = "cifar"
